@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Dashboard</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+    <style>
+      .sparkline { display:block; margin-top:4px; }
+      .heat td { transition: transform 0.15s ease; }
+      .heat td:hover { transform: scale(1.05); }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Dashboard</h1>
+      <p class="muted">Quick overview of sessions, attendance counts, and engagement metrics.</p>
+
+      <!-- Logout -->
+      <div class="row" style="margin-bottom:16px; gap:12px;">
+        <form action="/logout" method="post">
+          <button class="btn" type="submit">Logout</button>
+        </form>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Start a New Session</h3>
+        <form action="/start" method="post" class="row">
+          <div style="flex:1 1 220px;">
+            <div class="label">Course</div>
+            <input class="input" name="course" placeholder="CS101" required>
+          </div>
+          <div style="flex:1 1 160px;">
+            <div class="label">Room (optional)</div>
+            <input class="input" name="room" placeholder="A-201">
+          </div>
+          <div style="width:140px;">
+            <div class="label">Duration (min)</div>
+            <input class="input" name="duration" type="number" value="60" min="5" max="300">
+          </div>
+          <div style="flex:1 1 220px; display:flex; align-items:flex-end; gap:8px;">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" name="online" value="1">
+              <span>Online class (share join link)</span>
+            </label>
+          </div>
+          <div>
+            <div class="label">&nbsp;</div>
+            <button class="btn" type="submit">Start Session</button>
+          </div>
+        </form>
+        <p class="small" style="margin-top:8px;">Tick “Online class” to get a join link. Leave it unchecked to project a QR for in-person attendance.</p>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="row" style="align-items:flex-end;">
+          <div><div class="label">Total Sessions</div><div class="count">{{total_sessions}}</div></div>
+          <div><div class="label">Total Attendance Events</div><div class="count">{{total_att}}</div></div>
+        </div>
+        <div style="margin-top:12px;">
+          <div class="label">Recent trend (attendance per session)</div>
+          {% set w = 220 %}{% set h = 60 %}{% set n = sparkline|length %}
+          <svg width="{{w}}" height="{{h}}" viewBox="0 0 {{w}} {{h}}" class="sparkline">
+            <line x1="0" y1="{{h-12}}" x2="{{w}}" y2="{{h-12}}" stroke="#cbd5e1" stroke-width="1"/>
+            {% if n > 0 %}
+              {% set step = (w-10)/(n-1 if n>1 else 1) %}{% set d = [] %}
+              {% for v in sparkline %}
+                {% set x = 5 + step*(loop.index0) %}
+                {% set y = 8 + ((spark_max - (v if v>0 else 0)) / (spark_max if spark_max>0 else 1))*(h-20) %}
+                {% if loop.first %}
+                  <circle cx="{{x}}" cy="{{y}}" r="2" fill="#2563eb"/>{% set _ = d.append('M ' ~ x ~ ' ' ~ y) %}
+                {% else %}
+                  {% set _ = d.append('L ' ~ x ~ ' ' ~ y) %}
+                {% endif %}
+              {% endfor %}
+              <path d="{{ d|join(' ') }}" fill="none" stroke="#2563eb" stroke-width="2"/>
+              {% set x_last = 5 + step*(n-1) %}
+              {% set y_last = 8 + ((spark_max - (sparkline[-1] if sparkline[-1]>0 else 0)) / (spark_max if spark_max>0 else 1))*(h-20) %}
+              <circle cx="{{x_last}}" cy="{{y_last}}" r="3" fill="#1d4ed8"/>
+            {% endif %}
+          </svg>
+        </div>
+      </div>
+
+      <!-- Recent Sessions -->
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Recent Sessions</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Id</th><th>Course</th><th>Mode</th><th>Window</th><th>Present</th></tr></thead>
+          <tbody>
+            {% for r in recent %}
+            <tr>
+              <td>#{{r['id']}}</td>
+              <td>{{r['course']}}</td>
+              <td>{{ 'ONLINE' if r['room']=='ONLINE' else (r['room'] or 'QR/Room') }}</td>
+              <td>{{r['start_ts']}} → {{r['end_ts']}}</td>
+              <td>{{r['present']}}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="small">No sessions to show.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Top Attendance -->
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Top Attendance (by student)</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Roll No</th><th>Name</th><th>Presents</th></tr></thead>
+          <tbody>
+            {% for s in per_student %}
+            <tr><td>{{s['roll_no']}}</td><td>{{s['name']}}</td><td>{{s['presents']}}</td></tr>
+            {% else %}
+            <tr><td colspan="3" class="small">No data yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- At-Risk -->
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">At-Risk (≤ 1 presence if ≥ 3 sessions)</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Roll No</th><th>Name</th><th>Presents</th></tr></thead>
+          <tbody>
+            {% for s in risk %}
+            <tr><td>{{s['roll_no']}}</td><td>{{s['name']}}</td><td>{{s['presents']}}</td></tr>
+            {% else %}
+            <tr><td colspan="3" class="small">No one flagged yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Weekday × Time-slot Heat -->
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Weekday × Time-slot Heat</h3>
+        <p class="small" style="margin:0 0 10px;">Slots: Morning (06–12), Afternoon (12–17), Evening (17–22). Darker = higher attendance.</p>
+        <table class="heat" style="width:auto; border-collapse:separate; border-spacing:6px;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Day</th><th>Morning</th><th>Afternoon</th><th>Evening</th></tr></thead>
+          <tbody>
+            {% set days = ['Mon','Tue','Wed','Thu','Fri','Sat','Sun'] %}
+            {% for i in range(0,7) %}
+            <tr>
+              <td class="small" style="min-width:48px;">{{ days[i] }}</td>
+              {% for j in range(0,3) %}
+                {% set v = heat_norm[i][j] %}{% set pct = (v*100)|round(0, 'floor') %}
+                <td style="width:80px;height:30px;border-radius:10px;background:linear-gradient(180deg, rgba(37,99,235, {{ 0.15 + v*0.65 }}), rgba(37,99,235, {{ 0.10 + v*0.55 }})); text-align:center; color:#0f172a; font-weight:600;">
+                  {{ pct }}%
+                </td>
+              {% endfor %}
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

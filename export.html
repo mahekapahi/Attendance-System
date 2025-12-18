@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Export Session {{s.id}}</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Export Session #{{s.id}}</h1>
+      <p class="muted">Course {{s.course}} • {{ 'ONLINE' if s.room=='ONLINE' else (s.room or 'QR/Room') }}</p>
+
+      <div class="card" style="margin-bottom:16px;">
+        <a class="btn" href="/export_csv/{{s.id}}.csv">Download CSV</a>
+        <a class="btn" href="/dashboard" style="margin-left:8px;background:#475569;">Back to Dashboard</a>
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px;">Attendance</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Roll No</th><th>Name</th><th>Marked at</th></tr></thead>
+          <tbody>
+            {% for r in rows %}
+              <tr><td>{{r['roll_no']}}</td><td>{{r['name']}}</td><td>{{r['marked_at']}}</td></tr>
+            {% else %}
+              <tr><td colspan="3" class="small">No records.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

@@ -1,0 +1,38 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Mark Attendance</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Mark Attendance</h1>
+      <p class="muted">Session #{{s.id}} • {{s.course}}</p>
+      <div class="card">
+        <form action="/mark" method="post" class="row">
+          <input type="hidden" name="session_id" value="{{s.id}}"/>
+          <input type="hidden" name="token" value="{{token if token else ''}}"/>
+          <input type="hidden" name="link_sig" value="{{link_sig if link_sig else ''}}"/>
+
+          <div style="flex:1 1 180px;">
+            <div class="label">Roll No</div>
+            <input class="input" name="roll_no" placeholder="C62" required>
+          </div>
+          <div style="flex:2 1 260px;">
+            <div class="label">Password</div>
+            <input class="input" name="password" type="password" placeholder="••••••••" required>
+          </div>
+
+          <div>
+            <div class="label">&nbsp;</div>
+            <button class="btn" type="submit">Mark Present</button>
+          </div>
+        </form>
+      </div>
+      <p class="small">If you see “expired”, re-scan the QR or re-open the join link.</p>
+      <p class="small">Demo logins: Students c62..c112 password <code>stud123</code>.</p>
+    </div>
+  </body>
+</html>

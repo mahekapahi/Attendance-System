@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Simple QR Attendance</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Simple QR Attendance</h1>
+      <p class="muted">Start a session (QR or Online join link), project the QR or share the link. Students mark attendance.</p>
+
+      <div class="card" style="margin-bottom:16px;">
+        <form action="/start" method="post" class="row">
+          <div style="flex:1 1 220px;">
+            <div class="label">Course</div>
+            <input class="input" name="course" placeholder="CS101" required>
+          </div>
+          <div style="flex:1 1 160px;">
+            <div class="label">Room (or leave empty)</div>
+            <input class="input" name="room" placeholder="A-201">
+          </div>
+          <div style="width:140px;">
+            <div class="label">Duration (min)</div>
+            <input class="input" name="duration" type="number" value="60" min="5" max="300">
+          </div>
+          <div style="flex:1 1 200px; display:flex; align-items:flex-end; gap:8px;">
+            <label style="display:flex; align-items:center; gap:8px;">
+              <input type="checkbox" name="online" value="1">
+              <span>Online class (share join link)</span>
+            </label>
+          </div>
+          <div>
+            <div class="label">&nbsp;</div>
+            <button class="btn" type="submit">Start Session</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="btn-container" style="margin-bottom:12px;">
+          <a class="btn" href="/dashboard">Open Dashboard</a>
+        </div>
+        <h3 style="margin:0 0 8px;">Recent sessions</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead>
+            <tr style="text-align:left; color:#475569;">
+              <th>Id</th><th>Course</th><th>Mode</th><th>Window</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for s in sessions %}
+            <tr>
+              <td>#{{s.id}}</td>
+              <td>{{s.course}}</td>
+              <td>{{ 'ONLINE' if s.room=='ONLINE' else (s.room or 'QR/Room') }}</td>
+              <td>{{ (s.start_ts|int)|tojson }} → {{ (s.end_ts|int)|tojson }}</td>
+              <td class="actions">
+                <a class="btn" href="/session/{{s.id}}">Open</a>
+                <a class="btn" style="background:#334155" href="/export/{{s.id}}">Export</a>
+              </td>
+            </tr>
+            {% else %}
+            <tr><td colspan="5" class="small">No sessions yet. Start one above.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>

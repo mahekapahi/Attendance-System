@@ -1,0 +1,77 @@
+/* minimal, readable, teacher-friendly */
+:root{ --ink:#0f172a; --muted:#475569; --accent:#3b82f6; --accent-hover:#2563eb; }
+*{ box-sizing:border-box; }
+body{ 
+  font-family:system-ui,-apple-system,Segoe UI,Roboto,Inter,Arial; 
+  margin:0; 
+  color:var(--ink); 
+  background: linear-gradient(135deg, #e0f2fe, #bae6fd); 
+}
+.container{ max-width:920px; margin:0 auto; padding:24px; }
+.card{ 
+  background:#fff; 
+  border-radius:16px; 
+  padding:20px; 
+  box-shadow: 0 4px 6px rgba(59,130,246,0.3), 0 1px 3px rgba(0,0,0,0.06);
+  border: 1px solid transparent;
+  background-clip: padding-box;
+  position: relative;
+}
+.card::before {
+  content: "";
+  position: absolute;
+  top: -2px; left: -2px; right: -2px; bottom: -2px;
+  border-radius: 18px;
+  background: linear-gradient(45deg, #3b82f6, #60a5fa, #3b82f6);
+  z-index: -1;
+}
+h1{ 
+  font-size:28px; 
+  margin:0 0 8px; 
+  color: #2563eb; 
+  text-shadow: 1px 1px 2px rgba(37, 99, 235, 0.5);
+}
+p.muted{ color:var(--muted); margin-top:0; }
+.btn{ 
+  background:var(--accent); 
+  color:#fff; 
+  padding:10px 16px; 
+  border:none; 
+  border-radius:10px; 
+  cursor:pointer; 
+  font-weight: 600;
+  transition: background-color 0.3s ease, box-shadow 0.3s ease;
+}
+.btn:hover, .btn:focus {
+  background: var(--accent-hover);
+  box-shadow: 0 4px 12px rgba(37, 99, 235, 0.6);
+  outline: none;
+}
+.input{ width:100%; padding:10px 12px; border:1px solid #cbd5e1; border-radius:10px; }
+.row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; }
+.label{ font-size:12px; color:var(--muted); }
+.qr{ display:block; margin:16px auto; border-radius:12px; box-shadow:0 10px 24px rgba(0,0,0,.07); }
+.count{ font-size:20px; font-weight:600; }
+.small{ color:var(--muted); font-size:12px; }
+
+tr:hover {
+  background-color: #e0f2fe;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+}
+
+.btn + .btn {
+  margin-left: 16px;
+}
+
+/* Added styles to prevent overlapping buttons */
+.btn-container, .actions, .btn-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+tr .btn, .card .btn {
+  display: inline-block;
+  margin-top: 8px;
+}

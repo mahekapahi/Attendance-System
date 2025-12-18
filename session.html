@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Session #{{s.id}} – Projector</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+    <!-- cache-bust to avoid stale JS -->
+    <script src="/static/tick.js?v=4"></script>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Project this on screen</h1>
+      <p class="muted">QR auto-rotates and the page reloads every {{window}} s.</p>
+
+      {% if s['room'] == 'ONLINE' and join_url %}
+        <div class="card" style="margin-bottom:16px;">
+          <div class="label">ONLINE class – share this link (valid during the session window):</div>
+          <div style="word-break:break-all; margin-top:8px;">
+            <a class="btn" href="{{ join_url }}">{{ join_url }}</a>
+          </div>
+        </div>
+      {% endif %}
+
+      <div class="card" style="text-align:center;">
+        {% if s['room'] != 'ONLINE' %}
+          <img id="qr" class="qr" alt="QR" src="/qr/{{s.id}}.png?ts=0" width="340" height="340"/>
+        {% else %}
+          <div style="font-size:18px; font-weight:600; margin-bottom:8px;">ONLINE Mode</div>
+          <div class="small">Share the join link above. No QR is needed.</div>
+        {% endif %}
+
+        <div style="margin-top:8px;">Present so far: <span id="count" class="count">{{count}}</span></div>
+        <div class="small">Course: <b>{{s.course}}</b> • Session #{{s.id}}</div>
+
+        <form action="/end_session/{{s.id}}" method="post" style="margin-top:12px;">
+          <button class="btn" type="submit">End Session</button>
+        </form>
+      </div>
+    </div>
+
+    <script>
+      // Reload the entire page every 30 s to force a new QR and count
+      setInterval(() => {
+        location.reload(true); // true = fetch fresh from server
+      }, {{window}} * 1000);
+
+      // Still update count every 5 s in between reloads
+      startTicker({{s.id}}, {{window}}, {{ 'true' if s['room'] != 'ONLINE' else 'false' }});
+    </script>
+  </body>
+</html>

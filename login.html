@@ -1,0 +1,46 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>Login</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+  </head>
+  <body>
+    <div class="container" style="max-width:520px;">
+      <h1>Sign in</h1>
+      <p class="muted">Teacher or Student — use your username and password.</p>
+
+      {% with msgs = get_flashed_messages(category_filter=['error']) %}
+        {% if msgs %}
+          <div class="card" style="background:#fee2e2; color:#7f1d1d; margin-bottom:12px;">
+            {% for m in msgs %}<div>{{ m }}</div>{% endfor %}
+          </div>
+        {% endif %}
+      {% endwith %}
+
+      <div class="card">
+        <form action="/login{% if request.args.get('next') %}?next={{ request.args.get('next') }}{% endif %}"
+              method="post" class="row" style="gap:12px; flex-direction:column;">
+          <div>
+            <div class="label">Username</div>
+            <input class="input" name="username" placeholder="t1 or c62" required>
+          </div>
+          <div>
+            <div class="label">Password</div>
+            <input class="input" name="password" type="password" placeholder="••••••••" required>
+          </div>
+          <div>
+            <button class="btn" type="submit">Login</button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card" style="margin-top:12px;">
+        <div class="small"><b>Demo Accounts</b></div>
+        <div class="small">Teachers: <code>t1..t10 / teach123</code></div>
+        <div class="small">Students: <code>c62..c112 / stud123</code></div>
+      </div>
+    </div>
+  </body>
+</html>

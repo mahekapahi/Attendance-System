@@ -1,0 +1,95 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width, initial-scale=1"/>
+    <title>My Attendance</title>
+    <link rel="stylesheet" href="/static/main.css"/>
+    <style>
+      .badge { display:inline-block; padding:4px 10px; border-radius:999px; background:#e0e7ff; color:#1e3a8a; font-weight:600; margin:2px 6px 2px 0; }
+      .hints li { margin-left: 18px; }
+      .devices li { margin-left: 18px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 520px; }
+      .ok { color:#065f46; }
+      .err { color:#7f1d1d; }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <h1>Welcome, {{student_name}}</h1>
+      <p class="muted">Roll No: {{roll_no}}</p>
+
+      <!-- Logout -->
+      <div class="row" style="margin:12px 0; gap:12px;">
+        <form action="/logout" method="post">
+          <button class="btn" type="submit">Logout</button>
+        </form>
+      </div>
+
+      {% with ok = get_flashed_messages(category_filter=['ok']), err = get_flashed_messages(category_filter=['error']) %}
+        {% if ok %}<div class="card" style="background:#ecfdf5;"><div class="ok">{{ ok[0] }}</div></div>{% endif %}
+        {% if err %}<div class="card" style="background:#fee2e2;"><div class="err">{{ err[0] }}</div></div>{% endif %}
+      {% endwith %}
+
+      <div class="card" style="margin-bottom:16px;">
+        <div class="row" style="align-items:center; justify-content:space-between; gap:12px;">
+          <div><div class="label">Attendance %</div><div class="count">{{stats.attendance_pct}}%</div></div>
+          <div><div class="label">Current Streak</div><div class="count">{{stats.current_streak_days}} days</div></div>
+          <div><div class="label">Best Streak</div><div class="count">{{stats.best_streak_days}} days</div></div>
+          <div><div class="label">On-time Ratio</div><div class="count">{{stats.ontime_ratio}}%</div></div>
+          <div><a class="btn" href="/me/export.csv">Download CSV</a></div>
+          <div><a class="btn" href="/me/password">Change Password</a></div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Badges</h3>
+        {% if stats.badges %}
+          {% for b in stats.badges %}<span class="badge">{{ b }}</span>{% endfor %}
+        {% else %}
+          <div class="small">No badges yet. Aim for on-time marks and streaks!</div>
+        {% endif %}
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Your Typical Time Slots</h3>
+        {% if stats.top_slots %}
+          <ul class="hints">
+            {% for slot, cnt in stats.top_slots %}
+              <li><b>{{ slot }}</b> — {{ cnt }} times</li>
+            {% endfor %}
+          </ul>
+        {% else %}
+          <div class="small">No data yet.</div>
+        {% endif %}
+      </div>
+
+      <div class="card" style="margin-bottom:16px;">
+        <h3 style="margin:0 0 8px;">Last 5 Devices Used</h3>
+        {% if stats.last_devices %}
+          <ul class="devices">{% for d in stats.last_devices %}<li>{{ d }}</li>{% endfor %}</ul>
+        {% else %}
+          <div class="small">No device history yet.</div>
+        {% endif %}
+      </div>
+
+      <div class="card">
+        <h3 style="margin:0 0 8px;">My Attendance History</h3>
+        <table style="width:100%; border-collapse:collapse;">
+          <thead><tr style="text-align:left; color:#475569;"><th>Session</th><th>Course</th><th>Mode</th><th>Marked at</th></tr></thead>
+          <tbody>
+            {% for r in stats.rows %}
+            <tr>
+              <td>#{{r['session_id']}}</td>
+              <td>{{r['course']}}</td>
+              <td>{{ 'ONLINE' if r['room']=='ONLINE' else (r['room'] or 'QR/Room') }}</td>
+              <td>{{ r['marked_ts'] }}</td>
+            </tr>
+            {% else %}
+            <tr><td colspan="4" class="small">No attendance yet.</td></tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </body>
+</html>
